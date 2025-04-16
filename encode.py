@@ -1,5 +1,4 @@
-from cryptography.fernet import Fernet
-
+from cryptography.fernet import Fernet #pip install cryptography
 #este codigo genera una clave de encriptacion en un archivo llamado secret.key, solo se debe ejecutar una vez.
 def gen_key():
     key = Fernet.generate_key()
@@ -21,6 +20,9 @@ def enc_data(value):
     print(encrypted.decode())
 
 if __name__ == "__main__":
-    #gen_key()
     value=input("Introduce la contraseña a encriptar: ")
-    enc_data(value)
+    if value=="":
+        print("Gen Key")
+        gen_key()
+    else:
+        enc_data(value)

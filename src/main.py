@@ -1,6 +1,6 @@
-from dotenv import load_dotenv
+from dotenv import load_dotenv #pip install python-dotenv
 import os
-from cryptography.fernet import Fernet
+from cryptography.fernet import Fernet #pip install cryptography
 from outlook_reader import * #obtener_transacciones
 from excel_writer import * #guardar_transacciones_excel
 from notion_conn import * #sincronizar_notion
@@ -13,10 +13,10 @@ def cargar_config():
     fernet = Fernet(key)
     return {
         'EMAIL': os.getenv("EMAIL"),
-        'PASSWORD': fernet.decrypt(os.getenv("PASSWORD_MAIL").encode()).decode(),
+        #'PASSWORD': fernet.decrypt(os.getenv("PASSWORD_MAIL").encode()).decode(),
         'EXCEL_PATH': os.getenv("EXCEL_PATH"),
         'HOJA_EXCEL': os.getenv("HOJA_EXCEL"),
-        'NOTION_TOKEN': fernet.decrypt(os.getenv("NOTION_TOKEN").encode()).decode(),
+        #'NOTION_TOKEN': fernet.decrypt(os.getenv("NOTION_TOKEN").encode()).decode(),
         'NOTION_DATABASE_ID': os.getenv("NOTION_DATABASE_ID")
     }
 
