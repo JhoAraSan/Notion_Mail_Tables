@@ -1,36 +1,72 @@
-from dotenv import load_dotenv #pip install python-dotenv
+from dotenv import load_dotenv
 import os
-from cryptography.fernet import Fernet #pip install cryptography
-from outlook_reader import * #obtener_transacciones
-from excel_writer import * #guardar_transacciones_excel
-from notion_conn import * #sincronizar_notion
+import sys
+from read_excel import read_excel_file
+from notion_conn import create_notion_page
+import datetime
 
-# Cargar variables de entorno
-def cargar_config():
-    load_dotenv()
-    with open("secret.key", "rb") as f:
-        key = f.read()
-    fernet = Fernet(key)
-    return {
-        'EMAIL': os.getenv("EMAIL"),
-        #'PASSWORD': fernet.decrypt(os.getenv("PASSWORD_MAIL").encode()).decode(),
-        'EXCEL_PATH': os.getenv("EXCEL_PATH"),
-        'HOJA_EXCEL': os.getenv("HOJA_EXCEL"),
-        #'NOTION_TOKEN': fernet.decrypt(os.getenv("NOTION_TOKEN").encode()).decode(),
-        'NOTION_DATABASE_ID': os.getenv("NOTION_DATABASE_ID")
-    }
+def vars_env():
+    ENV_PATH = "list.env"
+    try:
+        with open(ENV_PATH, 'r') as f:
+            pass  # Solo para verificar que el archivo existe
+    except FileNotFoundError:
+        print(f"❌ Error: el archivo {ENV_PATH} no se encontró.")
+        sys.exit(1)
+
+    load_dotenv(dotenv_path="list.env")
+
+    try:
+        NOTION_TOKEN = os.getenv("NOTION_TK")
+        NOTION_DATABASE_ID = os.getenv("NOTION_DB")
+        EXCEL_FILE_PATH = os.getenv("EXC_PATH")
+        EXCEL_SHEET_NAME = os.getenv("EXC_PG")
+    except KeyError as e:
+        print(f"❌ Error: la variable de entorno {e} no está definida.")
+        sys.exit(1)
+
+    print("✅ Variables cargadas correctamente.")
+    return NOTION_TOKEN, NOTION_DATABASE_ID, EXCEL_FILE_PATH, EXCEL_SHEET_NAME
 
 def main():
-    config = cargar_config()
-    print("🔑 Configuración cargada.")
+    NOTION_TOKEN, NOTION_DATABASE_ID, EXCEL_FILE_PATH, EXCEL_SHEET_NAME = vars_env()
 
-#     transacciones = obtener_transacciones(config['EMAIL'], config['PASSWORD'])
+    datos_excel = read_excel_file(EXCEL_FILE_PATH, EXCEL_SHEET_NAME)
+    if datos_excel is None:
+        print("❌ Error: no se pudieron leer los datos del archivo Excel.")
+        sys.exit(1)
+    for fila in datos_excel:
+        fecha = fila[6]  # Cambia el índice según la columna que necesites
+        if not isinstance(fecha,(datetime.date, datetime.datetime)):
+            fecha_fin = datetime.datetime.strptime(fila[6], "%Y-%m-%d")
+        else:
+            fecha_fin = str(fecha) # Cambia el formato según sea necesario
+        # Aquí puedes definir las propiedades que deseas enviar a Notion
+        properties = {
+            "Nombre": {
+                "title": [
+                    {
+                        "text": {
+                            "content": str(fila[5])
+                        }
+                    }
+                ]
+            },
+            "Fecha": {
+                "date":{
+                        "start":fecha_fin
+                    }
+            }
+        }
+        if not create_notion_page(NOTION_TOKEN, NOTION_DATABASE_ID, properties):
+            print("❌ Error: no se pudo crear la página en Notion.")
+            sys.exit(1)
 
-#     if transacciones:
-#         guardar_transacciones_excel(config['EXCEL_PATH'], config['HOJA_EXCEL'], transacciones)
-#         sincronizar_notion(config['NOTION_TOKEN'], config['NOTION_DATABASE_ID'], transacciones)
-#     else:
-#         print("📭 No se encontraron nuevas transacciones.")
+    # Aquí puedes llamar a otras funciones o clases que necesiten estas variables
+    # Por ejemplo:
+    # from src.notion import Notion
+    # notion = Notion(NOTION_TOKEN, NOTION_DATABASE_ID)
+    # notion.some_method()
 
 if __name__ == "__main__":
     main()
