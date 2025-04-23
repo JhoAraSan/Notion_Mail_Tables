@@ -13,7 +13,7 @@ def vars_env():
         with open(ENV_PATH, 'r') as f:
             pass  # Solo para verificar que el archivo existe
     except FileNotFoundError:
-        print(f"❌ Error: el archivo {ENV_PATH} no se encontró.")
+        msn=f"❌ Error: el archivo {ENV_PATH} no se encontró."
         sys.exit(1)
 
     load_dotenv(dotenv_path="list.env")
@@ -24,18 +24,21 @@ def vars_env():
         EXCEL_FILE_PATH = os.getenv("EXC_PATH")
         EXCEL_SHEET_NAME = os.getenv("EXC_PG")
     except KeyError as e:
-        print(f"❌ Error: la variable de entorno {e} no está definida.")
+        msn=f"❌ Error: la variable de entorno {e} no está definida."
         sys.exit(1)
 
-    print("✅ Variables cargadas correctamente.")
-    return NOTION_TOKEN, NOTION_DATABASE_ID, EXCEL_FILE_PATH, EXCEL_SHEET_NAME
+    msn="✅ Variables cargadas correctamente."
+    return NOTION_TOKEN, NOTION_DATABASE_ID, EXCEL_FILE_PATH, EXCEL_SHEET_NAME, msn
 
 def main():
-    NOTION_TOKEN, NOTION_DATABASE_ID, EXCEL_FILE_PATH, EXCEL_SHEET_NAME = vars_env()
+    msns=[]
+    NOTION_TOKEN, NOTION_DATABASE_ID, EXCEL_FILE_PATH, EXCEL_SHEET_NAME ,msn= vars_env()
+    msns.append(msn)
 
-    datos_excel = read_excel_file(EXCEL_FILE_PATH, EXCEL_SHEET_NAME)
+    datos_excel,msn = read_excel_file(EXCEL_FILE_PATH, EXCEL_SHEET_NAME)
+    msns.append(msn)
     if datos_excel is None:
-        print("❌ Error: no se pudieron leer los datos del archivo Excel.")
+        msns.append("❌ Error: no se pudieron leer los datos del archivo Excel.")
         sys.exit(1)
     for fila in datos_excel:
         fecha = fila[6] # Cambia el índice según la columna que necesites
@@ -44,7 +47,6 @@ def main():
             dias = datetime.date.today() - fecha.date()
         else:
             fecha_fin = str(fecha)
-            print(f'Pase por aca wajaja {fecha_fin} vs {fecha}') # Cambia el formato según sea necesario
         # Aquí puedes definir las propiedades que deseas enviar a Notion
         properties = {
             "Nombre": {
@@ -66,14 +68,15 @@ def main():
             }
         }
         
-        page_id = get_notion_database( NOTION_TOKEN,NOTION_DATABASE_ID, fila[5])
+        page_id, msn = get_notion_database( NOTION_TOKEN,NOTION_DATABASE_ID, fila[5])
+        msns.append(msn)
 
         if page_id:
-            update_notion_page( NOTION_TOKEN, page_id, properties)
+            msns.append(update_notion_page( NOTION_TOKEN, page_id, properties)[1])
         else:
-            create_notion_page(NOTION_DATABASE_ID, NOTION_TOKEN, properties)
+            msns.append(create_notion_page(NOTION_DATABASE_ID, NOTION_TOKEN, properties)[1])
     
-    mostrar_mensaje_final()
+    mostrar_mensaje_final(msns)
 
 if __name__ == "__main__":
     main()

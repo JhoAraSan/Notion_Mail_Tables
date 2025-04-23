@@ -25,11 +25,11 @@ def create_notion_page(token, database_id, properties):
     try:
         response = requests.post(url, headers=headers, json=payload)
         response.raise_for_status()
-        print(f"✅ Página creada correctamente: {response.status_code}")
-        return True
+        msn=f"✅ Página creada correctamente: {response.status_code}"
+        return True, msn
     except requests.exceptions.RequestException as e:
-        print(f"❌ Error creando la página: {e}")
-        return False
+        msn=f"❌ Error creando la página: {e}"
+        return False, msn
     
 def get_notion_database(token, database_id,nombre):
     """
@@ -58,10 +58,10 @@ def get_notion_database(token, database_id,nombre):
     try:
         response = requests.post(url, headers=headers, json=data)
         response.raise_for_status()
-        return response.json().get("results", [])[0]["id"]
+        return response.json().get("results", [])[0]["id"], "✅ Id encontrado correctamente"
     except requests.exceptions.RequestException as e:
-        print(f"❌ Error obteniendo el database: {e}")
-        return None
+        msn=f"❌ Error obteniendo el database: {e}"
+        return None,msn
 
 def update_notion_page(token, page_id, properties):
     """
@@ -87,10 +87,10 @@ def update_notion_page(token, page_id, properties):
     try:
         response = requests.patch(url, headers=headers, json=payload)
         response.raise_for_status()
-        print(f"✅ Página actualizada correctamente: {response.status_code}")
-        return True
+        msn=f"✅ Página actualizada correctamente: {response.status_code}"
+        return True, msn
     except requests.exceptions.RequestException as e:
-        print(f"❌ Error actualizando la página: {e}")
-        return False
+        msn=f"❌ Error actualizando la página: {e}"
+        return False, msn
 
 

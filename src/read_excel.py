@@ -15,8 +15,8 @@ def read_excel_file(file_path, sheet_name):
     try:
         df = pd.read_excel(file_path, sheet_name=sheet_name,header=None,usecols="F:G",skiprows=4,nrows=19) # Cambia el rango de filas según sea necesario
         records = df.to_dict(orient="records")
-        print(f"✅ Hoja '{sheet_name}' leída correctamente. Filas encontradas: {len(records)}")
-        return records
+        msn=f"✅ Hoja '{sheet_name}' leída. # Filas: {len(records)}"
+        return records, msn
     except Exception as e:
-        print(f"❌ Error leyendo el Excel: {e}")
-        return []
+        msn=f"❌ Error leyendo el Excel: {e}"
+        return [], msn
