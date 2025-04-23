@@ -30,3 +30,67 @@ def create_notion_page(token, database_id, properties):
     except requests.exceptions.RequestException as e:
         print(f"❌ Error creando la página: {e}")
         return False
+    
+def get_notion_database(token, database_id,nombre):
+    """
+    Obtiene el contenido de un database de Notion.
+
+    :param token: Token de la integración de Notion.
+    :param database_id: ID del database de Notion.
+    :return: Contenido del database.
+    """
+    url = f"https://api.notion.com/v1/databases/{database_id}/query"
+
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json",
+        "Notion-Version": "2022-06-28"
+    }
+    data = {
+        "filter": {
+            "property": "Nombre",
+            "rich_text": {
+                "equals": nombre
+            }
+        }
+    }
+
+    try:
+        response = requests.post(url, headers=headers, json=data)
+        response.raise_for_status()
+        return response.json().get("results", [])[0]["id"]
+    except requests.exceptions.RequestException as e:
+        print(f"❌ Error obteniendo el database: {e}")
+        return None
+
+def update_notion_page(token, page_id, properties):
+    """
+    Actualiza una página en un database de Notion.
+
+    :param token: Token de la integración de Notion.
+    :param page_id: ID de la página a actualizar.
+    :param properties: Propiedades a actualizar en la página.
+    :return: True si fue exitoso, False si hubo error.
+    """
+    url = f"https://api.notion.com/v1/pages/{page_id}"
+
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json",
+        "Notion-Version": "2022-06-28"
+    }
+
+    payload = {
+        "properties": properties
+    }
+
+    try:
+        response = requests.patch(url, headers=headers, json=payload)
+        response.raise_for_status()
+        print(f"✅ Página actualizada correctamente: {response.status_code}")
+        return True
+    except requests.exceptions.RequestException as e:
+        print(f"❌ Error actualizando la página: {e}")
+        return False
+
+

@@ -2,7 +2,9 @@ from dotenv import load_dotenv
 import os
 import sys
 from read_excel import read_excel_file
-from notion_conn import create_notion_page
+from notion_conn import *
+from mensaje import mostrar_mensaje_final
+import pandas as pd
 import datetime
 
 def vars_env():
@@ -36,11 +38,13 @@ def main():
         print("❌ Error: no se pudieron leer los datos del archivo Excel.")
         sys.exit(1)
     for fila in datos_excel:
-        fecha = fila[6]  # Cambia el índice según la columna que necesites
-        if not isinstance(fecha,(datetime.date, datetime.datetime)):
-            fecha_fin = datetime.datetime.strptime(fila[6], "%Y-%m-%d")
+        fecha = fila[6] # Cambia el índice según la columna que necesites
+        if isinstance(fecha,(datetime.date, datetime.datetime,pd.Timestamp)): #aqui reconoce tres tipos de fecha
+            fecha_fin = fecha.strftime("%Y-%m-%d") # Cambia el formato según sea necesario
+            dias = datetime.date.today() - fecha.date()
         else:
-            fecha_fin = str(fecha) # Cambia el formato según sea necesario
+            fecha_fin = str(fecha)
+            print(f'Pase por aca wajaja {fecha_fin} vs {fecha}') # Cambia el formato según sea necesario
         # Aquí puedes definir las propiedades que deseas enviar a Notion
         properties = {
             "Nombre": {
@@ -56,17 +60,20 @@ def main():
                 "date":{
                         "start":fecha_fin
                     }
+            },
+            "Dias": {
+                "number": int(dias.days) 
             }
         }
-        if not create_notion_page(NOTION_TOKEN, NOTION_DATABASE_ID, properties):
-            print("❌ Error: no se pudo crear la página en Notion.")
-            sys.exit(1)
+        
+        page_id = get_notion_database( NOTION_TOKEN,NOTION_DATABASE_ID, fila[5])
 
-    # Aquí puedes llamar a otras funciones o clases que necesiten estas variables
-    # Por ejemplo:
-    # from src.notion import Notion
-    # notion = Notion(NOTION_TOKEN, NOTION_DATABASE_ID)
-    # notion.some_method()
+        if page_id:
+            update_notion_page( NOTION_TOKEN, page_id, properties)
+        else:
+            create_notion_page(NOTION_DATABASE_ID, NOTION_TOKEN, properties)
+    
+    mostrar_mensaje_final()
 
 if __name__ == "__main__":
     main()
