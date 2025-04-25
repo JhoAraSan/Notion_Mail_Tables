@@ -58,7 +58,11 @@ def get_notion_database(token, database_id,nombre):
     try:
         response = requests.post(url, headers=headers, json=data)
         response.raise_for_status()
-        return response.json().get("results", [])[0]["id"], "✅ Id encontrado correctamente"
+        if response.status_code == 200 and not response.json().get("results"):
+            msn=f"❌ No se encontró el database con el nombre: {nombre}"
+            return None,msn
+        else:
+            return response.json().get("results", [])[0]["id"], "✅ Id encontrado correctamente"
     except requests.exceptions.RequestException as e:
         msn=f"❌ Error obteniendo el database: {e}"
         return None,msn
@@ -93,4 +97,12 @@ def update_notion_page(token, page_id, properties):
         msn=f"❌ Error actualizando la página: {e}"
         return False, msn
 
+def G_U_C_data(msns:list, Nombre, NOTION_TOKEN, NOTION_DATABASE_ID, properties):
+    page_id, msn = get_notion_database( NOTION_TOKEN,NOTION_DATABASE_ID, Nombre)
+    msns.append(msn)
 
+    if page_id==None:
+        msns.append(create_notion_page( NOTION_TOKEN,NOTION_DATABASE_ID, properties)[1])
+    else:
+        msns.append(update_notion_page( NOTION_TOKEN, page_id, properties)[1])
+    return msns

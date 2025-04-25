@@ -1,11 +1,9 @@
 from dotenv import load_dotenv
 import os
 import sys
-from read_excel import read_excel_file
+from read_excel import *
 from notion_conn import *
 from mensaje import mostrar_mensaje_final
-import pandas as pd
-import datetime
 
 def vars_env():
     ENV_PATH = "list.env"
@@ -21,60 +19,41 @@ def vars_env():
     try:
         NOTION_TOKEN = os.getenv("NOTION_TK")
         NOTION_DATABASE_ID = os.getenv("NOTION_DB")
+        NOTION_DATABASE_ID_2 = os.getenv("NOTION_DB_2")
         EXCEL_FILE_PATH = os.getenv("EXC_PATH")
         EXCEL_SHEET_NAME = os.getenv("EXC_PG")
+        EXCEL_SHEET_COLS = os.getenv("EXC_PG_COLS")
+        EXCEL_SHEET_NAME_2 = os.getenv("EXC_PG_2")
+        EXCEL_SHEET_COLS_2 = os.getenv("EXC_PG_2_COLS")
     except KeyError as e:
         msn=f"❌ Error: la variable de entorno {e} no está definida."
         sys.exit(1)
 
     msn="✅ Variables cargadas correctamente."
-    return NOTION_TOKEN, NOTION_DATABASE_ID, EXCEL_FILE_PATH, EXCEL_SHEET_NAME, msn
+    return NOTION_TOKEN, NOTION_DATABASE_ID, NOTION_DATABASE_ID_2, EXCEL_FILE_PATH, EXCEL_SHEET_NAME,EXCEL_SHEET_COLS, EXCEL_SHEET_NAME_2,EXCEL_SHEET_COLS_2, msn
 
 def main():
     msns=[]
-    NOTION_TOKEN, NOTION_DATABASE_ID, EXCEL_FILE_PATH, EXCEL_SHEET_NAME ,msn= vars_env()
+    NOTION_TOKEN, NOTION_DATABASE_ID, NOTION_DATABASE_ID_2, EXCEL_FILE_PATH, EXCEL_SHEET_NAME,EXCEL_SHEET_COLS,EXCEL_SHEET_NAME_2,EXCEL_SHEET_COLS_2,msn= vars_env()
     msns.append(msn)
 
-    datos_excel,msn = read_excel_file(EXCEL_FILE_PATH, EXCEL_SHEET_NAME)
+    datos_excel,msn = read_excel_file(EXCEL_FILE_PATH, EXCEL_SHEET_NAME,header=None,usecols=EXCEL_SHEET_COLS,skiprows=4,nrows=19)
     msns.append(msn)
     if datos_excel is None:
         msns.append("❌ Error: no se pudieron leer los datos del archivo Excel.")
         sys.exit(1)
     for fila in datos_excel:
-        fecha = fila[6] # Cambia el índice según la columna que necesites
-        if isinstance(fecha,(datetime.date, datetime.datetime,pd.Timestamp)): #aqui reconoce tres tipos de fecha
-            fecha_fin = fecha.strftime("%Y-%m-%d") # Cambia el formato según sea necesario
-            dias = datetime.date.today() - fecha.date()
-        else:
-            fecha_fin = str(fecha)
-        # Aquí puedes definir las propiedades que deseas enviar a Notion
-        properties = {
-            "Nombre": {
-                "title": [
-                    {
-                        "text": {
-                            "content": str(fila[5])
-                        }
-                    }
-                ]
-            },
-            "Fecha": {
-                "date":{
-                        "start":fecha_fin
-                    }
-            },
-            "Dias": {
-                "number": int(dias.days) 
-            }
-        }
-        
-        page_id, msn = get_notion_database( NOTION_TOKEN,NOTION_DATABASE_ID, fila[5])
-        msns.append(msn)
-
-        if page_id:
-            msns.append(update_notion_page( NOTION_TOKEN, page_id, properties)[1])
-        else:
-            msns.append(create_notion_page(NOTION_DATABASE_ID, NOTION_TOKEN, properties)[1])
+        properties=data(fila[5],fila[6])
+        G_U_C_data(msns, fila[5], NOTION_TOKEN, NOTION_DATABASE_ID, properties)
+    
+    datos_excel,msn = read_excel_file(EXCEL_FILE_PATH, EXCEL_SHEET_NAME_2,header=None,usecols=EXCEL_SHEET_COLS_2,skiprows=21,nrows=15)
+    msns.append(msn)
+    if datos_excel is None:
+        msns.append("❌ Error: no se pudieron leer los datos del archivo Excel.")
+        sys.exit(1)
+    for fila in datos_excel:
+        properties=data(fila[7],fila[8])
+        G_U_C_data(msns, fila[7], NOTION_TOKEN, NOTION_DATABASE_ID_2, properties)
     
     mostrar_mensaje_final(msns)
 
