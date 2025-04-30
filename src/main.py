@@ -37,6 +37,7 @@ def main():
     NOTION_TOKEN, NOTION_DATABASE_ID, NOTION_DATABASE_ID_2, EXCEL_FILE_PATH, EXCEL_SHEET_NAME,EXCEL_SHEET_COLS,EXCEL_SHEET_NAME_2,EXCEL_SHEET_COLS_2,msn= vars_env()
     msns.append(msn)
 
+    # Leer el archivo Excel Servicios
     datos_excel,msn = read_excel_file(EXCEL_FILE_PATH, EXCEL_SHEET_NAME,header=None,usecols=EXCEL_SHEET_COLS,skiprows=4,nrows=19)
     msns.append(msn)
     if datos_excel is None:
@@ -46,7 +47,8 @@ def main():
         properties=data(fila[5],fila[6])
         G_U_C_data(msns, fila[5], NOTION_TOKEN, NOTION_DATABASE_ID, properties)
     
-    datos_excel,msn = read_excel_file(EXCEL_FILE_PATH, EXCEL_SHEET_NAME_2,header=None,usecols=EXCEL_SHEET_COLS_2,skiprows=21,nrows=15)
+    # Leer el archivo Excel Apps
+    datos_excel,msn = read_excel_file(EXCEL_FILE_PATH, EXCEL_SHEET_NAME_2,header=None,usecols=EXCEL_SHEET_COLS_2,skiprows=21,nrows=12)
     msns.append(msn)
     if datos_excel is None:
         msns.append("❌ Error: no se pudieron leer los datos del archivo Excel.")
