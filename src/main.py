@@ -20,7 +20,7 @@ def vars_env():
         NOTION_TOKEN = os.getenv("NOTION_TK")
         NOTION_DATABASE_ID = os.getenv("NOTION_DB")
         NOTION_DATABASE_ID_2 = os.getenv("NOTION_DB_2")
-        EXCEL_FILE_PATH = os.getenv("EXC_PATH")
+        EXCEL_FILE_PATH = os.path.normpath(os.getenv("EXC_PATH"))
         EXCEL_SHEET_NAME = os.getenv("EXC_PG")
         EXCEL_SHEET_COLS = os.getenv("EXC_PG_COLS")
         EXCEL_SHEET_NAME_2 = os.getenv("EXC_PG_2")

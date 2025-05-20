@@ -1,6 +1,7 @@
 # modules/read_excel.py
 import pandas as pd #pip install pandas openpyxl
 import datetime
+import win32com.client #pip install pywin32
 
 def read_excel_file(file_path, sheet_name,header,usecols,skiprows,nrows):
     """
